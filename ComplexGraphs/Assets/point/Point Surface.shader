@@ -1,4 +1,4 @@
-Shader "Graph/Point Surface"
+jShader "Graph/Point Surface"
 {
     Properties
     {
