@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
-using static UnityEngine.Mathf; 
+using static UnityEngine.Mathf;
+using Random = UnityEngine.Random;
+
 public static class FunctionLibrary
 {
     public delegate Vector3 Function(float u, float v, float t);
@@ -14,6 +16,15 @@ public static class FunctionLibrary
     
     public static Function GetFunction(FunctionName name) {
         return functions[(int)name];
+    }
+
+    public static FunctionName GetNextFunction(FunctionName name) {
+        return (int)name < functions.Length - 1 ? name + 1 : 0;
+    }
+
+    public static FunctionName GetRandomFunctionOtherThan(FunctionName name) {
+        FunctionName choice = (FunctionName) Random.Range(1, functions.Length);
+        return choice == name ? 0 : choice;
     }
     
     public static Vector3 Wave(float u, float v, float t) {
