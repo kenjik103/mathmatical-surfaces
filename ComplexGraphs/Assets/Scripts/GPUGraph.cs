@@ -4,7 +4,15 @@ using UnityEngine.LowLevel;
 
 public class GPUGraph: MonoBehaviour
 {
-    [SerializeField, Range(10,200)] 
+    const int maxResolution = 1000;
+    
+    static readonly int 
+        positionId = Shader.PropertyToID("_Positions"),
+        resolutionId = Shader.PropertyToID("_Resolution"),
+        stepId = Shader.PropertyToID("_Step"),
+        timeId = Shader.PropertyToID("_Time");
+    
+    [SerializeField, Range(10,maxResolution)] 
     int resolution = 10;
 
     [SerializeField]
@@ -22,10 +30,6 @@ public class GPUGraph: MonoBehaviour
     [SerializeField] Material material;
     [SerializeField] Mesh mesh;
 
-    static readonly int positionId = Shader.PropertyToID("_Position"),
-    resolutionId = Shader.PropertyToID("_Resolution"),
-    stepId = Shader.PropertyToID("_Step"),
-    timeId = Shader.PropertyToID("_Time");
     
     float duration;
     bool transitioning;
@@ -34,7 +38,7 @@ public class GPUGraph: MonoBehaviour
     ComputeBuffer positionBuffer;
 
     void OnEnable() {
-        positionBuffer = new ComputeBuffer(resolution * resolution, 3 * 4); //Vector3: 3 floats; float = 4 bytes
+        positionBuffer = new ComputeBuffer(maxResolution * maxResolution, 3 * 4); //Vector3: 3 floats; float = 4 bytes
     }
 
     void OnDisable() {
@@ -52,9 +56,11 @@ public class GPUGraph: MonoBehaviour
 
         int groups = Mathf.CeilToInt(resolution / 8f);
         computeShader.Dispatch(0,groups,groups,1);
-
+        
+        material.SetBuffer(positionId, positionBuffer);
+        material.SetFloat(stepId, step);
         Bounds bounds = new Bounds(Vector3.zero, Vector3.one * (2f + 2f / resolution));
-        Graphics.DrawMeshInstancedProcedural(mesh, 0, material, bounds, positionBuffer.count);
+        Graphics.DrawMeshInstancedProcedural(mesh, 0, material, bounds, resolution * resolution);
     }
 
     void Update() {
