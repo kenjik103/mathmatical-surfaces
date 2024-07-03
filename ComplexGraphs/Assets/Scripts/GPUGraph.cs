@@ -19,6 +19,9 @@ public class GPUGraph: MonoBehaviour
 
     [SerializeField] ComputeShader computeShader;
 
+    [SerializeField] Material material;
+    [SerializeField] Mesh mesh;
+
     static readonly int positionId = Shader.PropertyToID("_Position"),
     resolutionId = Shader.PropertyToID("_Resolution"),
     stepId = Shader.PropertyToID("_Step"),
@@ -31,7 +34,7 @@ public class GPUGraph: MonoBehaviour
     ComputeBuffer positionBuffer;
 
     void OnEnable() {
-        positionBuffer = new ComputeBuffer(resolution * resolution, 3 * 4);
+        positionBuffer = new ComputeBuffer(resolution * resolution, 3 * 4); //Vector3: 3 floats; float = 4 bytes
     }
 
     void OnDisable() {
@@ -39,7 +42,7 @@ public class GPUGraph: MonoBehaviour
         positionBuffer = null;
     }
 
-    void UpdateGPU() {
+    void UpdateFunctionOnGPU() {
         float step = 2f / resolution;
         computeShader.SetInt(resolutionId, resolution);
         computeShader.SetFloat(stepId, step);
@@ -49,6 +52,9 @@ public class GPUGraph: MonoBehaviour
 
         int groups = Mathf.CeilToInt(resolution / 8f);
         computeShader.Dispatch(0,groups,groups,1);
+
+        Bounds bounds = new Bounds(Vector3.zero, Vector3.one * (2f + 2f / resolution));
+        Graphics.DrawMeshInstancedProcedural(mesh, 0, material, bounds, positionBuffer.count);
     }
 
     void Update() {
@@ -62,7 +68,7 @@ public class GPUGraph: MonoBehaviour
             transitionFunction = function;
             PickNextFunction();
         }
-        UpdateGPU();
+        UpdateFunctionOnGPU();
     }
 
     void PickNextFunction() {
